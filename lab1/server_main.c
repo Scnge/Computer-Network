@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <WinSock2.h>
-#include <ctime>
+//#include <ctime>
 
 #pragma comment(lib,"ws2_32.lib")
 
