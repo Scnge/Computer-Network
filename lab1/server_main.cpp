@@ -13,7 +13,7 @@ using namespace std;
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 禁止编译器显示与 Winsock / WIN API 相关的特定警告信息
 #define _CRT_SECURE_NO_WARNINGS // 禁止编译器在编译过程中发出关于可能存在安全风险的函数警告
 
-#define MAX_CLIENTS 10
+#define MAX_CLIENTS 3
 #define BUFFER_SIZE 1024
 
 // 客户端结构体
@@ -26,6 +26,7 @@ struct Client {
 vector<Client> clients(MAX_CLIENTS);
 vector<thread> clientThreads(MAX_CLIENTS);
 
+// 获取当前时间
 string GetNowTime() {
     time_t now = time(nullptr);
     struct tm* ltm = localtime(&now);
@@ -34,10 +35,12 @@ string GetNowTime() {
     return string(buffer);
 }
 
+// 时间 + 消息
 void PrintInfo(const string& info) {
     cout << GetNowTime() << " " << info << endl;
 }
 
+// 寻找空闲线程
 int FindFreeThread() {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].sock == INVALID_SOCKET)
@@ -46,6 +49,7 @@ int FindFreeThread() {
     return -1;
 }
 
+// 同步发送消息
 void ShareMessage(const string& msg) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].sock != INVALID_SOCKET) {
@@ -54,7 +58,8 @@ void ShareMessage(const string& msg) {
     }
 }
 
-void ClientHandler(int index) {
+// 线程
+void thread_func(int index) {
     Client& client = clients[index];
     char buffer[BUFFER_SIZE];
     int bytes;
@@ -74,7 +79,7 @@ void ClientHandler(int index) {
             if (bytes <= 0) break;
             buffer[bytes] = '\0';
             string message = client.username + ": " + buffer;
-            PrintInfo("Broadcasting: " + message);
+            PrintInfo("Message: " + message);
             ShareMessage(message);
         }
 
@@ -86,11 +91,9 @@ void ClientHandler(int index) {
 }
 
 int main() {
-    UINT port, max_clients;
+    UINT port;
     cout << "Please enter the port number:";
     cin >> port;
-    cout << "Please enter the maximum number of people that the server can support:";
-    cin >> max_clients;
 
     // socket初始化
     WSADATA wsadata;
@@ -129,18 +132,19 @@ int main() {
 
     // 等待连接客户端
     try {
-        while (true) {
-            SOCKET clientSocket = accept(listen_socket, NULL, NULL);
-            if (clientSocket != INVALID_SOCKET) {
+        while (1) {
+            SOCKET client_socket = accept(listen_socket, NULL, NULL);
+
+            if (client_socket != INVALID_SOCKET) {
                 int pos = FindFreeThread();
                 if (pos == -1) {
-                    PrintInfo("Max clients reached, connection refused.");
-                    closesocket(clientSocket);
+                    PrintInfo("The server has reached its maximum capacity, the connection has failed.");
+                    closesocket(client_socket);
                     continue;
                 }
 
-                clients[pos].sock = clientSocket;
-                clientThreads[pos] = thread(ClientHandler, pos);
+                clients[pos].sock = client_socket;
+                clientThreads[pos] = thread(thread_func, pos);
                 clientThreads[pos].detach();
             }
         }
