@@ -13,7 +13,7 @@ using namespace std;
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 禁止编译器显示与 Winsock / WIN API 相关的特定警告信息
 #define _CRT_SECURE_NO_WARNINGS // 禁止编译器在编译过程中发出关于可能存在安全风险的函数警告
 
-#define MAX_CLIENTS 3
+#define MAX_CLIENTS 10
 #define BUFFER_SIZE 1024
 
 // 客户端结构体
@@ -84,7 +84,9 @@ void thread_func(int index) {
         }
 
         client.sock = INVALID_SOCKET;
+        string exitMsg = client.username + " has left the chat room.";
         PrintInfo(client.username + " has left the chat room.");
+        ShareMessage("System message: " + exitMsg);
     }
 
     closesocket(client.sock);
