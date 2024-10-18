@@ -11,6 +11,15 @@ using namespace std;
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 禁止编译器显示与 Winsock / WIN API 相关的特定警告信息
 #define _CRT_SECURE_NO_WARNINGS // 禁止编译器在编译过程中发出关于可能存在安全风险的函数警告
 
+// 获取当前时间
+string GetNowTime() {
+    time_t now = time(nullptr);
+    struct tm* ltm = localtime(&now);
+    char buffer[20];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", ltm);
+    return string(buffer);
+}
+
 // 接收消息
 void ReceiveMessages(SOCKET sock) {
     char buffer[1024];
@@ -21,7 +30,7 @@ void ReceiveMessages(SOCKET sock) {
             cout << "Disconnected with server." << endl;
             break;
         }
-        cout << buffer << endl;
+        cout << GetNowTime() << " " << buffer << endl;
     }
 }
 
